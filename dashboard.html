@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>学员人数追踪看板</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #f0f2f5;
+  color: #333;
+  padding: 12px;
+  min-height: 100vh;
+}
+.header {
+  margin-bottom: 16px;
+}
+.header h1 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+.header .sub {
+  font-size: 13px;
+  color: #888;
+  margin-top: 4px;
+}
+.last-update {
+  font-size: 12px;
+  color: #999;
+  text-align: center;
+  margin-top: 16px;
+  padding-bottom: 24px;
+}
+.cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 14px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.card .label {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 4px;
+}
+.card .value {
+  font-size: 24px;
+  font-weight: 700;
+}
+.card .value.blue { color: #2563eb; }
+.card .value.green { color: #16a34a; }
+.card .value.gray { color: #555; }
+.card .delta {
+  font-size: 13px;
+  margin-top: 2px;
+}
+.card .delta.up { color: #16a34a; }
+.card .delta.down { color: #dc2626; }
+.card.full {
+  grid-column: 1 / -1;
+}
+.chart-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+.chart-box h3 {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+.chart {
+  width: 100%;
+  height: 260px;
+}
+.table-box {
+  background: #fff;
+  border-radius: 12px;
+  padding: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  overflow-x: auto;
+}
+.table-box h3 {
+  font-size: 14px;
+  color: #555;
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+th {
+  background: #f8f9fa;
+  text-align: left;
+  padding: 8px 6px;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+td {
+  padding: 8px 6px;
+  border-top: 1px solid #eee;
+  white-space: nowrap;
+}
+tr:first-child td { border-top: none; }
+.error-msg {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📊 学员人数追踪</h1>
+  <div class="sub" id="subtitle">加载中...</div>
+</div>
+
+<div class="cards" id="cards">
+  <div class="card"><div class="label">学员总数</div><div class="value blue" id="total">—</div></div>
+  <div class="card"><div class="label">合格人数</div><div class="value green" id="qualified">—</div></div>
+  <div class="card"><div class="label">学员增长</div><div class="value gray" id="deltaTotal">—</div><div class="delta" id="deltaTotalTag"></div></div>
+  <div class="card"><div class="label">合格增长</div><div class="value gray" id="deltaQualified">—</div><div class="delta" id="deltaQualifiedTag"></div></div>
+</div>
+
+<div class="chart-box">
+  <h3>人数趋势</h3>
+  <div id="trendChart" class="chart"></div>
+</div>
+
+<div class="chart-box">
+  <h3>每日增长</h3>
+  <div id="growthChart" class="chart"></div>
+</div>
+
+<div class="table-box">
+  <h3>历史数据</h3>
+  <table>
+    <thead><tr><th>日期</th><th>学员总数</th><th>合格人数</th><th>学员增长</th><th>合格增长</th></tr></thead>
+    <tbody id="tableBody"></tbody>
+  </table>
+</div>
+
+<div class="last-update" id="lastUpdate"></div>
+
+<script>
+async function loadData() {
+  try {
+    const res = await fetch('data.json');
+    const data = await res.json();
+    render(data);
+  } catch(e) {
+    document.getElementById('subtitle').textContent = '无法加载数据';
+    document.querySelector('.cards').innerHTML = '<div class="card full error-msg">请先运行 python tracker.py 生成数据</div>';
+  }
+}
+
+function render(data) {
+  const rows = data.rows;
+  const last = rows[rows.length - 1];
+
+  document.getElementById('subtitle').textContent = `共 ${rows.length} 条记录`;
+
+  // Cards
+  document.getElementById('total').textContent = last.total.toLocaleString();
+  document.getElementById('qualified').textContent = last.qualified.toLocaleString();
+
+  const dt = last.delta_total;
+  const dq = last.delta_qualified;
+  document.getElementById('deltaTotal').textContent = (dt > 0 ? '+' : '') + dt.toLocaleString();
+  document.getElementById('deltaQualified').textContent = (dq > 0 ? '+' : '') + dq.toLocaleString();
+
+  function setTag(el, val) {
+    const tag = document.getElementById(el);
+    if (val > 0) {
+      tag.textContent = '↑ 较上次增加';
+      tag.className = 'delta up';
+    } else if (val < 0) {
+      tag.textContent = '↓ 较上次减少';
+      tag.className = 'delta down';
+    } else {
+      tag.textContent = '— 与上次持平';
+      tag.className = 'delta';
+    }
+  }
+  setTag('deltaTotalTag', dt);
+  setTag('deltaQualifiedTag', dq);
+
+  // Trend chart
+  const dates = rows.map(r => r.date.slice(0, 16));
+  const totals = rows.map(r => r.total);
+  const qualifieds = rows.map(r => r.qualified);
+
+  const trendChart = echarts.init(document.getElementById('trendChart'));
+  trendChart.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 50, right: 16, top: 20, bottom: 30 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 10, rotate: 30 } },
+    yAxis: { type: 'value', min: data => Math.floor(data.min * 0.98) },
+    series: [
+      { name: '学员总数', type: 'line', data: totals, smooth: true, lineStyle: { color: '#2563eb', width: 2 }, itemStyle: { color: '#2563eb' }, symbol: 'circle', symbolSize: 5 },
+      { name: '合格人数', type: 'line', data: qualifieds, smooth: true, lineStyle: { color: '#16a34a', width: 2 }, itemStyle: { color: '#16a34a' }, symbol: 'circle', symbolSize: 5 }
+    ]
+  });
+  window.addEventListener('resize', () => trendChart.resize());
+
+  // Growth chart
+  const deltaTotals = rows.map((r, i) => i === 0 ? 0 : r.delta_total);
+  const deltaQualifieds = rows.map((r, i) => i === 0 ? 0 : r.delta_qualified);
+
+  const growthChart = echarts.init(document.getElementById('growthChart'));
+  growthChart.setOption({
+    tooltip: { trigger: 'axis' },
+    grid: { left: 50, right: 16, top: 20, bottom: 30 },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 10, rotate: 30 } },
+    yAxis: { type: 'value' },
+    series: [
+      { name: '学员增长', type: 'bar', data: deltaTotals, itemStyle: { color: '#2563eb' } },
+      { name: '合格增长', type: 'bar', data: deltaQualifieds, itemStyle: { color: '#16a34a' } }
+    ]
+  });
+  window.addEventListener('resize', () => growthChart.resize());
+
+  // Table
+  const tbody = document.getElementById('tableBody');
+  for (const r of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.date.slice(0, 16)}</td>
+      <td>${r.total.toLocaleString()}</td>
+      <td>${r.qualified.toLocaleString()}</td>
+      <td>${r.delta_total > 0 ? '+' : ''}${r.delta_total.toLocaleString()}</td>
+      <td>${r.delta_qualified > 0 ? '+' : ''}${r.delta_qualified.toLocaleString()}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  // Update time
+  if (data.updated) {
+    document.getElementById('lastUpdate').textContent = '数据更新于 ' + data.updated;
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
