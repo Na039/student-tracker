@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>学员人数追踪看板</title>
+<title>继续教育学员人数追踪</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -116,6 +116,33 @@ td {
   white-space: nowrap;
 }
 tr:first-child td { border-top: none; }
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin-top: 12px;
+  font-size: 13px;
+  color: #666;
+}
+.pagination button {
+  background: #f0f2f5;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  transition: all 0.15s;
+}
+.pagination button:hover:not(:disabled) {
+  background: #e0e2e5;
+  border-color: #bbb;
+}
+.pagination button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 .error-msg {
   text-align: center;
   padding: 40px 20px;
@@ -127,7 +154,7 @@ tr:first-child td { border-top: none; }
 <body>
 
 <div class="header">
-  <h1>📊 学员人数追踪</h1>
+  <h1>📊 继续教育学员人数追踪</h1>
   <div class="sub" id="subtitle">加载中...</div>
 </div>
 
@@ -148,30 +175,97 @@ tr:first-child td { border-top: none; }
   <div id="growthChart" class="chart"></div>
 </div>
 
-<div class="table-box">
+<div class="table-box" id="historyTable">
   <h3>历史数据</h3>
   <table>
     <thead><tr><th>日期</th><th>学员总数</th><th>合格人数</th><th>学员增长</th><th>合格增长</th></tr></thead>
     <tbody id="tableBody"></tbody>
   </table>
+  <div class="pagination" id="pagination">
+    <button id="prevPage" onclick="changePage(-1)">« 上一页</button>
+    <span id="pageInfo">第 1/1 页</span>
+    <button id="nextPage" onclick="changePage(1)">下一页 »</button>
+  </div>
+</div>
+
+<div class="chart-box" id="instChartBox" style="display:none;">
+  <h3>🏛 机构增长排行</h3>
+  <div id="institutionChart" class="chart" style="height:400px;"></div>
+</div>
+
+<div class="table-box" id="instTableBox" style="display:none;">
+  <h3>机构排名（按学员增长降序）</h3>
+  <div style="overflow-x:auto;">
+    <table>
+      <thead><tr><th>排名</th><th>机构名称</th><th>学员总数</th><th>合格人数</th><th>合格率</th><th>学员增长</th><th>合格增长</th></tr></thead>
+      <tbody id="instTableBody"></tbody>
+    </table>
+  </div>
 </div>
 
 <div class="last-update" id="lastUpdate"></div>
 
 <script>
+let currentPage = 1;
+const PAGE_SIZE = 7;
+let allRows = [];
+
 async function loadData() {
   try {
-    const res = await fetch('data.json?t=' + Date.now());
-    const data = await res.json();
-    render(data);
+    const [globalRes, instRes] = await Promise.all([
+      fetch('data.json?t=' + Date.now()),
+      fetch('institutions.json?t=' + Date.now()).catch(() => null)
+    ]);
+    const data = await globalRes.json();
+    let instData = null;
+    if (instRes && instRes.ok) {
+      instData = await instRes.json();
+    }
+    render(data, instData);
   } catch(e) {
     document.getElementById('subtitle').textContent = '无法加载数据';
     document.querySelector('.cards').innerHTML = '<div class="card full error-msg">请先运行 python tracker.py 生成数据</div>';
   }
 }
 
-function render(data) {
+function renderPage() {
+  const reversedRows = [...allRows].reverse();
+  const totalPages = Math.ceil(reversedRows.length / PAGE_SIZE);
+  if (currentPage > totalPages) currentPage = totalPages;
+  if (currentPage < 1) currentPage = 1;
+  const start = (currentPage - 1) * PAGE_SIZE;
+  const pageRows = reversedRows.slice(start, start + PAGE_SIZE);
+
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = '';
+  for (const r of pageRows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${r.date.slice(0, 16)}</td>
+      <td>${r.total.toLocaleString()}</td>
+      <td>${r.qualified.toLocaleString()}</td>
+      <td>${r.delta_total > 0 ? '+' : ''}${r.delta_total.toLocaleString()}</td>
+      <td>${r.delta_qualified > 0 ? '+' : ''}${r.delta_qualified.toLocaleString()}</td>`;
+    tbody.appendChild(tr);
+  }
+
+  document.getElementById('pageInfo').textContent = `第 ${currentPage}/${totalPages} 页`;
+  document.getElementById('prevPage').disabled = currentPage <= 1;
+  document.getElementById('nextPage').disabled = currentPage >= totalPages;
+}
+
+function changePage(delta) {
+  const reversedRows = [...allRows].reverse();
+  const totalPages = Math.ceil(reversedRows.length / PAGE_SIZE);
+  const newPage = currentPage + delta;
+  if (newPage < 1 || newPage > totalPages) return;
+  currentPage = newPage;
+  renderPage();
+}
+
+function render(data, instData) {
   const rows = data.rows;
+  allRows = rows;
   const last = rows[rows.length - 1];
 
   document.getElementById('subtitle').textContent = `共 ${rows.length} 条记录`;
@@ -201,7 +295,7 @@ function render(data) {
   setTag('deltaTotalTag', dt);
   setTag('deltaQualifiedTag', dq);
 
-  // Trend chart
+  // Trend chart (unchanged)
   const dates = rows.map(r => r.date.slice(0, 16));
   const totals = rows.map(r => r.total);
   const qualifieds = rows.map(r => r.qualified);
@@ -219,7 +313,7 @@ function render(data) {
   });
   window.addEventListener('resize', () => trendChart.resize());
 
-  // Growth chart
+  // Growth chart (unchanged)
   const deltaTotals = rows.map((r, i) => i === 0 ? 0 : r.delta_total);
   const deltaQualifieds = rows.map((r, i) => i === 0 ? 0 : r.delta_qualified);
 
@@ -236,23 +330,95 @@ function render(data) {
   });
   window.addEventListener('resize', () => growthChart.resize());
 
-  // Table
-  const tbody = document.getElementById('tableBody');
-  for (const r of rows) {
-    const tr = document.createElement('tr');
-    tr.innerHTML = `
-      <td>${r.date.slice(0, 16)}</td>
-      <td>${r.total.toLocaleString()}</td>
-      <td>${r.qualified.toLocaleString()}</td>
-      <td>${r.delta_total > 0 ? '+' : ''}${r.delta_total.toLocaleString()}</td>
-      <td>${r.delta_qualified > 0 ? '+' : ''}${r.delta_qualified.toLocaleString()}</td>`;
-    tbody.appendChild(tr);
+  // Paginated table
+  currentPage = 1;
+  renderPage();
+
+  // Institution data
+  if (instData && instData.records && instData.records.length > 0) {
+    renderInstitutionData(instData);
   }
 
   // Update time
   if (data.updated) {
     document.getElementById('lastUpdate').textContent = '数据更新于 ' + data.updated;
   }
+}
+
+function renderInstitutionData(instData) {
+  const lastRecord = instData.records[instData.records.length - 1];
+  const items = lastRecord.items;
+  if (!items || items.length === 0) return;
+
+  // Sort by delta_total descending
+  const sorted = [...items].sort((a, b) => b.delta_total - a.delta_total);
+
+  // Show sections
+  document.getElementById('instChartBox').style.display = 'block';
+  document.getElementById('instTableBox').style.display = 'block';
+
+  // Bar chart - Top 15
+  const topN = sorted.slice(0, 15);
+  const names = topN.map(item => item.name).reverse();
+  const deltaTotalsData = topN.map(item => item.delta_total).reverse();
+  const deltaQualifiedsData = topN.map(item => item.delta_qualified).reverse();
+
+  const instChart = echarts.init(document.getElementById('institutionChart'));
+  instChart.setOption({
+    tooltip: {
+      trigger: 'axis',
+      axisPointer: { type: 'shadow' },
+      formatter: function(params) {
+        const idx = params[0].dataIndex;
+        const item = topN[topN.length - 1 - idx];
+        if (!item) return '';
+        return `${item.name}<br/>
+          学员总数: ${item.total.toLocaleString()}<br/>
+          合格人数: ${item.qualified.toLocaleString()}<br/>
+          学员增长: ${item.delta_total > 0 ? '+' : ''}${item.delta_total.toLocaleString()}<br/>
+          合格增长: ${item.delta_qualified > 0 ? '+' : ''}${item.delta_qualified.toLocaleString()}`;
+      }
+    },
+    grid: { left: 100, right: 40, top: 16, bottom: 20 },
+    xAxis: { type: 'value', name: '增长人数' },
+    yAxis: {
+      type: 'category',
+      data: names,
+      axisLabel: { fontSize: 11 }
+    },
+    series: [
+      {
+        name: '学员增长',
+        type: 'bar',
+        data: deltaTotalsData,
+        itemStyle: { color: '#2563eb' }
+      },
+      {
+        name: '合格增长',
+        type: 'bar',
+        data: deltaQualifiedsData,
+        itemStyle: { color: '#16a34a' }
+      }
+    ]
+  });
+  window.addEventListener('resize', () => instChart.resize());
+
+  // Ranking table
+  const tbody = document.getElementById('instTableBody');
+  tbody.innerHTML = '';
+  sorted.forEach((item, index) => {
+    const rate = item.total > 0 ? (item.qualified / item.total * 100).toFixed(1) + '%' : '—';
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${item.name}</td>
+      <td>${item.total.toLocaleString()}</td>
+      <td>${item.qualified.toLocaleString()}</td>
+      <td>${rate}</td>
+      <td style="color:${item.delta_total > 0 ? '#16a34a' : '#999'}">${item.delta_total > 0 ? '+' : ''}${item.delta_total.toLocaleString()}</td>
+      <td style="color:${item.delta_qualified > 0 ? '#16a34a' : '#999'}">${item.delta_qualified > 0 ? '+' : ''}${item.delta_qualified.toLocaleString()}</td>`;
+    tbody.appendChild(tr);
+  });
 }
 
 loadData();
