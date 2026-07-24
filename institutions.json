@@ -6,9 +6,9 @@
         {
           "name": "攀枝花市建筑业联合协会",
           "total": 1266,
-          "qualified": 1167,
+          "qualified": 1218,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 51
         },
         {
           "name": "凉山州建设工程质量安全与监理协会",
@@ -20,9 +20,9 @@
         {
           "name": "雅安市建筑业协会",
           "total": 1285,
-          "qualified": 1167,
+          "qualified": 1208,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 41
         },
         {
           "name": "遂宁市建筑业协会培训中心",
@@ -48,9 +48,9 @@
         {
           "name": "绵阳能全建筑设备租赁有限公司",
           "total": 7398,
-          "qualified": 7187,
+          "qualified": 7212,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 25
         },
         {
           "name": "眉山工程技师学院",
@@ -62,9 +62,9 @@
         {
           "name": "四川省建设工程质量安全与监理协会",
           "total": 36075,
-          "qualified": 34221,
+          "qualified": 34393,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 172
         },
         {
           "name": "泸州职业技术学院",
@@ -76,9 +76,9 @@
         {
           "name": "成都职业技术学校",
           "total": 8549,
-          "qualified": 7684,
+          "qualified": 7711,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 27
         },
         {
           "name": "德阳市建筑房地产业联合协会",
@@ -111,9 +111,9 @@
         {
           "name": "南充市建设人才培训中心",
           "total": 4291,
-          "qualified": 4148,
+          "qualified": 4194,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 46
         },
         {
           "name": "四川华西集团有限公司培训中心",
@@ -139,12 +139,12 @@
         {
           "name": "四川建筑职业技术大学继续教育学院",
           "total": 29269,
-          "qualified": 27516,
+          "qualified": 27666,
           "delta_total": 0,
-          "delta_qualified": 0
+          "delta_qualified": 150
         }
       ]
     }
   ],
-  "updated": "2026-07-24 11:05:35"
+  "updated": "2026-07-24 18:00:47"
 }
