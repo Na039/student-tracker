@@ -2534,7 +2534,159 @@
           "delta_qualified": 0
         }
       ]
+    },
+    {
+      "date": "2026-08-27",
+      "items": [
+        {
+          "name": "四川省建设工程质量安全与监理协会",
+          "total": 42313,
+          "qualified": 40322,
+          "delta_total": 227,
+          "delta_qualified": 189
+        },
+        {
+          "name": "四川华西集团有限公司培训中心",
+          "total": 10549,
+          "qualified": 9878,
+          "delta_total": 203,
+          "delta_qualified": 0
+        },
+        {
+          "name": "四川建筑职业技术大学继续教育学院",
+          "total": 34126,
+          "qualified": 32351,
+          "delta_total": 137,
+          "delta_qualified": 96
+        },
+        {
+          "name": "成都职业技术学校",
+          "total": 11030,
+          "qualified": 10085,
+          "delta_total": 113,
+          "delta_qualified": 112
+        },
+        {
+          "name": "遂宁市建筑业协会培训中心",
+          "total": 3880,
+          "qualified": 3645,
+          "delta_total": 98,
+          "delta_qualified": 67
+        },
+        {
+          "name": "绵阳能全建筑设备租赁有限公司",
+          "total": 8958,
+          "qualified": 8654,
+          "delta_total": 81,
+          "delta_qualified": 0
+        },
+        {
+          "name": "凉山州建设工程质量安全与监理协会",
+          "total": 1282,
+          "qualified": 1167,
+          "delta_total": 79,
+          "delta_qualified": 2
+        },
+        {
+          "name": "乐山市建筑业协会",
+          "total": 2801,
+          "qualified": 2637,
+          "delta_total": 73,
+          "delta_qualified": 76
+        },
+        {
+          "name": "达州市建筑业协会",
+          "total": 214,
+          "qualified": 149,
+          "delta_total": 65,
+          "delta_qualified": 0
+        },
+        {
+          "name": "攀枝花市建筑业联合协会",
+          "total": 1345,
+          "qualified": 1295,
+          "delta_total": 0,
+          "delta_qualified": 0
+        },
+        {
+          "name": "雅安市建筑业协会",
+          "total": 1489,
+          "qualified": 1428,
+          "delta_total": 0,
+          "delta_qualified": 56
+        },
+        {
+          "name": "资阳益兴教育体育发展有限公司",
+          "total": 803,
+          "qualified": 796,
+          "delta_total": 0,
+          "delta_qualified": 0
+        },
+        {
+          "name": "自贡市建筑工程技术中心(学校)",
+          "total": 1888,
+          "qualified": 1819,
+          "delta_total": 0,
+          "delta_qualified": 39
+        },
+        {
+          "name": "眉山工程技师学院",
+          "total": 2060,
+          "qualified": 1925,
+          "delta_total": 0,
+          "delta_qualified": 0
+        },
+        {
+          "name": "泸州职业技术学院",
+          "total": 6825,
+          "qualified": 6373,
+          "delta_total": 0,
+          "delta_qualified": 168
+        },
+        {
+          "name": "德阳市建筑房地产业联合协会",
+          "total": 5521,
+          "qualified": 5199,
+          "delta_total": 0,
+          "delta_qualified": 110
+        },
+        {
+          "name": "广元市建筑业协会",
+          "total": 3006,
+          "qualified": 2579,
+          "delta_total": 0,
+          "delta_qualified": 60
+        },
+        {
+          "name": "巴中逸沣安全技术咨询有限公司",
+          "total": 3205,
+          "qualified": 3114,
+          "delta_total": 0,
+          "delta_qualified": 73
+        },
+        {
+          "name": "宜宾市建设教育培训中心",
+          "total": 4234,
+          "qualified": 4129,
+          "delta_total": 0,
+          "delta_qualified": 215
+        },
+        {
+          "name": "南充市建设人才培训中心",
+          "total": 4993,
+          "qualified": 4874,
+          "delta_total": 0,
+          "delta_qualified": 0
+        },
+        {
+          "name": "内江市建筑业协会",
+          "total": 2275,
+          "qualified": 2217,
+          "delta_total": 0,
+          "delta_qualified": 0
+        }
+      ]
     }
   ],
-  "updated": "2026-08-26 18:00:49"
+  "updated": "2026-08-27 18:00:49"
 }
